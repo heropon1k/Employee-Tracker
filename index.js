@@ -53,6 +53,7 @@ function main() {
                     break;
                 case 'View All Departments':
                     console.log('View All Departments');
+                    view_department(pool);
                     break;
                 case 'Add Department':
                     console.log('Add Department');
@@ -88,19 +89,13 @@ function add_employee(pool){
             name: 'last-name',
             message: 'What is their last name?',
         },
-        {
-            type: 'list',
-            name: 'role',
-            message: 'What is their role?',
-            choice: [pool.query('SELECT title FROM role')]
-        },
-        {
-            type: 'list',
-            name: 'manager',
-            message: 'Who is their manager?',
-            choice: ['none',pool.query('SELECT title FROM role')]
-        },
     ])
+    .then((input) => {
+        const firstname = input.first-name;
+        const lastname = input.last-name;
+
+
+    })
 }
 
 function update_employee(){
@@ -116,8 +111,9 @@ function add_roles(){
 }
 
 function view_department(){
-    pool.query('SELECT * FROM department', (err, { rows })=> {
+    pool.query('SELECT department.id, department.name FROM department', (err, { rows })=> {
         console.table(rows);
+        main()
     })
 }
 
@@ -131,7 +127,7 @@ function add_department(pool){
             }])
             .then((input) => {
                 pool.query(`INSERT INTO department (name) VALUES ('${input.add_department}')`)
-                console.log(`${input.add_department} department added`)
-                main();
+                console.log(`${input.add_department} department added`)      
             })
+            .then(() => main());
 }
