@@ -1,5 +1,18 @@
 const inquirer = require('inquirer');
+
 const { Pool } = require('pg');
+
+const pool = new Pool(
+    {
+        user: 'postgres',
+        password: 'rootroot',
+        host: 'localhost',
+        database: 'employee_db'
+    },
+    console.log('connected to employee_db')
+)
+
+pool.connect()
 
 function main() {
     inquirer
@@ -23,9 +36,11 @@ function main() {
             switch (input.userInput) {
                 case 'View All Employees':
                     console.log('View All Employees');
+                    view_employee(pool);
                     break;
                 case 'Add Employee':
                     console.log('Add Employee');
+                    add_employee(pool)
                     break;
                 case 'Update Employee Role':
                     console.log('Update Employee Role');
@@ -41,10 +56,11 @@ function main() {
                     break;
                 case 'Add Department':
                     console.log('Add Department');
+                    add_department(pool);
                     break;
                 case 'Quit':
                     console.log('Quit');
-                    break;
+                    process.exit()
             }
         })
 
@@ -52,3 +68,70 @@ function main() {
 }
 
 main();
+
+function view_employee(pool){
+    pool.query('SELECT * FROM employee', (err, { rows })=> {
+        console.table(rows);
+    })
+}
+
+function add_employee(pool){
+    inquirer
+    .prompt([
+        {
+            type: 'text',
+            name: 'first-name',
+            message: 'What is their first name?',
+        },
+        {
+            type: 'text',
+            name: 'last-name',
+            message: 'What is their last name?',
+        },
+        {
+            type: 'list',
+            name: 'role',
+            message: 'What is their role?',
+            choice: [pool.query('SELECT title FROM role')]
+        },
+        {
+            type: 'list',
+            name: 'manager',
+            message: 'Who is their manager?',
+            choice: ['none',pool.query('SELECT title FROM role')]
+        },
+    ])
+}
+
+function update_employee(){
+
+}
+
+function view_roles(){
+
+}
+
+function add_roles(){
+
+}
+
+function view_department(){
+    pool.query('SELECT * FROM department', (err, { rows })=> {
+        console.table(rows);
+    })
+}
+
+function add_department(pool){
+    inquirer
+        .prompt([
+            {
+                type: 'text',
+                name: 'add_department',
+                message: 'What is the name of the department?',
+            }])
+            .then((input) => {
+                pool.query(`INSERT INTO department (name) VALUES ('${input.add_department}')`)
+                console.log(`${input.add_department} department added`)
+                main();
+            })
+}
