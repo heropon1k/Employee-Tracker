@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 const pool = require('./db/connection.js');
 
+// Main menu
 function main() {
     inquirer
         .prompt([
@@ -58,15 +59,19 @@ function main() {
 
 }
 
+// initialize
 main();
 
+// Obtain employee data from database
 function view_employee() {
     pool.query('SELECT employee.id, employee.first_name, employee.last_name, role.title, role.salary, department.name FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department = department.id;', (err, { rows }) => {
         console.table(rows);
+        // return to main function
         main();
     })
 }
 
+// add employee
 function add_employee() {
     inquirer
         .prompt([
@@ -82,14 +87,16 @@ function add_employee() {
             },
         ])
         .then((input) => {
+            // Store first and last name for later
             const firstname = input.firstName;
             const lastname = input.lastName;
-            //console.log(firstname + lastname)
 
+            // Obtain role data from database
             pool.query('SELECT role.title, role.id FROM role', (err, { rows }) => {
                 let roles = rows;
+                // Sets value to be id
                 const roles_db = roles.map(({ department, title }) => ({ name: title, value: department }));
-                console.log(roles_db)
+                //console.log(roles_db)
                 inquirer
                     .prompt([
                         {
@@ -101,13 +108,15 @@ function add_employee() {
                     ])
 
                     .then((roleChoice) => {
-
+                        // Store role choice
                         const role = roleChoice.department;
+                        // Obtain employee data from database
                         pool.query('SELECT employee.id, employee.first_name, employee.last_name FROM employee', (err, { rows }) => {
                             let manager = rows;
-                            console.log(manager)
+                            //console.log(manager)
+                            // Sets value to be id
                             const manager_db = manager.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id }));
-                            console.log(manager_db)
+                            //console.log(manager_db)
                             inquirer
                                 .prompt([
                                     {
@@ -118,9 +127,12 @@ function add_employee() {
                                     }
                                 ])
                                 .then((managerChoice) => {
+                                    // insert data into employee database
                                     pool.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstname}', '${lastname}', ${role}, ${managerChoice.manager})`)
+                                    console.log('Employee added')
                                 })
-                                .then(() => main())
+                                // return to main
+                                .then(() => main());
                         })
                     })
 
@@ -130,9 +142,12 @@ function add_employee() {
         })
 }
 
+// Update employee
 function update_employee() {
+    // Obtain employee data
     pool.query('SELECT employee.id, employee.first_name, employee.last_name FROM employee', (err, { rows }) => {
         let employees = rows;
+        // Set value to id
         const employee_db = employees.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id }));
         inquirer
             .prompt([{
@@ -142,11 +157,12 @@ function update_employee() {
                 choices: employee_db
             }])
             .then((employeeChoice) => {
+                // Stores chosen employee
                 const employee_update = employeeChoice.employee;
                 pool.query('SELECT role.title, role.id FROM role', (err, { rows }) => {
                     let roles = rows;
                     const roles_db = roles.map(({ id, title }) => ({ name: title, value: id }));
-                    console.log(roles_db)
+                    //console.log(roles_db)
                     inquirer
                         .prompt([
                             {
@@ -157,18 +173,20 @@ function update_employee() {
                             }
                         ])
                         .then((roleChoice) => {
-                            console.log(employee_update)
-                            console.log(roleChoice.department)
+                            //console.log(employee_update)
+                            //console.log(roleChoice.department)
+                            // Updates employee
                             pool.query(`UPDATE employee SET role_id = ${roleChoice.department} WHERE id = ${employee_update}`)
                             console.log('Role updated')
                         })
-                        .then(() => main())
+                        .then(() => main());
 
                 })
             })
     })
 }
 
+// View all avaliable roles
 function view_roles() {
     pool.query('SELECT * FROM role', (err, { rows }) => {
         console.table(rows);
@@ -176,6 +194,7 @@ function view_roles() {
     })
 }
 
+// Add roles
 function add_roles() {
     pool.query('SELECT * FROM department', (err, { rows }) => {
         let departments = rows;
@@ -208,6 +227,7 @@ function add_roles() {
     })
 }
 
+// View all departments
 function view_department() {
     pool.query('SELECT department.id, department.name FROM department', (err, { rows }) => {
         console.table(rows);
@@ -215,6 +235,7 @@ function view_department() {
     })
 }
 
+// Add departments
 function add_department() {
     inquirer
         .prompt([
