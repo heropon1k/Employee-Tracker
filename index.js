@@ -27,10 +27,11 @@ function main() {
                     break;
                 case 'Add Employee':
                     console.log('Add Employee');
-                    add_employee()
+                    add_employee();
                     break;
                 case 'Update Employee Role':
                     console.log('Update Employee Role');
+                    update_employee();
                     break;
                 case 'View All Roles':
                     console.log('View All Roles');
@@ -116,7 +117,7 @@ function add_employee() {
                                         choices: manager_db
                                     }
                                 ])
-                                .then((managerChoice) => {     
+                                .then((managerChoice) => {
                                     pool.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstname}', '${lastname}', ${role}, ${managerChoice.manager})`)
                                 })
                                 .then(() => main())
@@ -130,7 +131,40 @@ function add_employee() {
 }
 
 function update_employee() {
+    pool.query('SELECT employee.id, employee.first_name, employee.last_name FROM employee', (err, { rows }) => {
+        let employees = rows;
+        const employee_db = employees.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id }));
+        inquirer
+            .prompt([{
+                type: 'list',
+                name: 'employee',
+                message: 'Who wuld you like to update',
+                choices: employee_db
+            }])
+            .then((employeeChoice) => {
+                const employee_update = employeeChoice.employee;
+                pool.query('SELECT role.title, role.department FROM role', (err, { rows }) => {
+                    let roles = rows;
+                    const roles_db = roles.map(({ department, title }) => ({ name: title, value: department }));
+                    console.log(roles_db)
+                    inquirer
+                        .prompt([
+                            {
+                                type: 'list',
+                                name: 'department',
+                                message: 'What is their new role?',
+                                choices: roles_db,
+                            }
+                        ])
+                        .then((roleChoice) => {
+                            pool.query(`UPDATE employee SET role_id = ${roleChoice.department} WHERE id = ${employee_update}`)
+                            console.log('Role updated')
+                        })
+                        .then(() => main())
 
+                })
+            })
+    })
 }
 
 function view_roles() {
