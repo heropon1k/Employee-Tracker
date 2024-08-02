@@ -1,5 +1,5 @@
 const inquirer = require('inquirer');
-const pool  = require('./db/connection.js');
+const pool = require('./db/connection.js');
 
 function main() {
     inquirer
@@ -87,10 +87,7 @@ function add_employee() {
 
             pool.query('SELECT role.title, role.department FROM role', (err, { rows }) => {
                 let roles = rows;
-                const roles_db = roles.map(({ department, title }) => ({
-                    name: title,
-                    value: department,
-                }));
+                const roles_db = roles.map(({ department, title }) => ({ name: title, value: department }));
                 console.log(roles_db)
                 inquirer
                     .prompt([
@@ -100,30 +97,32 @@ function add_employee() {
                             message: 'What is their role?',
                             choices: roles_db,
                         }
-                            .then((roleChoice) => {
-
-                                const role = roleChoice.role;
-                                pool.query('SELECT employee.first_name, employee.last_name FROM employee', (err, { rows }) => {
-                                    let manager = rows;
-                                    const manager_db = manager.map(({ id, first_name, last_name }) => ({
-                                        name: first_name + " " + last_name,
-                                        value: id
-                                    }));
-                                    inquirer
-                                        .prompt([
-                                            {
-                                                type: 'list',
-                                                name: 'manager',
-                                                message: 'Whos is their manager?',
-                                                choices: manager_db
-                                            }
-                                        ])
-                                        .then((managerChoice) => {
-                                            pool.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUE ('${firstname}', '${lastname}', '${role}', '${managerChoice.manager}')`)
-                                        })
-                                })
-                            })
                     ])
+
+                    .then((roleChoice) => {
+
+                        const role = roleChoice.department;
+                        pool.query('SELECT employee.id, employee.first_name, employee.last_name FROM employee', (err, { rows }) => {
+                            let manager = rows;
+                            console.log(manager)
+                            const manager_db = manager.map(({ id, first_name, last_name }) => ({ name: first_name + " " + last_name, value: id }));
+                            console.log(manager_db)
+                            inquirer
+                                .prompt([
+                                    {
+                                        type: 'list',
+                                        name: 'manager',
+                                        message: 'Whos is their manager?',
+                                        choices: manager_db
+                                    }
+                                ])
+                                .then((managerChoice) => {     
+                                    pool.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ('${firstname}', '${lastname}', ${role}, ${managerChoice.manager})`)
+                                })
+                                .then(() => main())
+                        })
+                    })
+
             })
 
 
@@ -144,10 +143,7 @@ function view_roles() {
 function add_roles() {
     pool.query('SELECT * FROM department', (err, { rows }) => {
         let departments = rows;
-        const department_db = departments.map(({ id, name }) => ({
-            name: name,
-            value: id,
-        }));
+        const department_db = departments.map(({ id, name }) => ({ name: name, value: id }));
 
         inquirer
             .prompt([
