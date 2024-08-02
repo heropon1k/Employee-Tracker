@@ -15,7 +15,7 @@ VALUES('Engineer', 85000, 1),
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES  
  ('Jimmy', 'Morty', 2, null), 
- ('Deon', 'Gibson', 1, 1), 
+ ('Deon', 'Gibson', 3, null), 
  ('James', 'Smith', 1, 1),
  ('Jamie', 'Brynlee', 1, 1),
  ('Kevin', 'Carrol', 4, null);

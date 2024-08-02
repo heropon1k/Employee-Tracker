@@ -86,7 +86,7 @@ function add_employee() {
             const lastname = input.lastName;
             //console.log(firstname + lastname)
 
-            pool.query('SELECT role.title, role.department FROM role', (err, { rows }) => {
+            pool.query('SELECT role.title, role.id FROM role', (err, { rows }) => {
                 let roles = rows;
                 const roles_db = roles.map(({ department, title }) => ({ name: title, value: department }));
                 console.log(roles_db)
@@ -143,9 +143,9 @@ function update_employee() {
             }])
             .then((employeeChoice) => {
                 const employee_update = employeeChoice.employee;
-                pool.query('SELECT role.title, role.department FROM role', (err, { rows }) => {
+                pool.query('SELECT role.title, role.id FROM role', (err, { rows }) => {
                     let roles = rows;
-                    const roles_db = roles.map(({ department, title }) => ({ name: title, value: department }));
+                    const roles_db = roles.map(({ id, title }) => ({ name: title, value: id }));
                     console.log(roles_db)
                     inquirer
                         .prompt([
@@ -157,6 +157,8 @@ function update_employee() {
                             }
                         ])
                         .then((roleChoice) => {
+                            console.log(employee_update)
+                            console.log(roleChoice.department)
                             pool.query(`UPDATE employee SET role_id = ${roleChoice.department} WHERE id = ${employee_update}`)
                             console.log('Role updated')
                         })
@@ -213,7 +215,7 @@ function view_department() {
     })
 }
 
-function add_department(pool) {
+function add_department() {
     inquirer
         .prompt([
             {
